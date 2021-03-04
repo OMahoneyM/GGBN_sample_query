@@ -1,0 +1,99 @@
+---
+title: "Query GGBN"
+author: "Michael JV O'Mahoney"
+date: "February 2021"
+output: html_notebook
+---
+
+## Loading Libraries & Data
+
+* Load in the required libraries
+```{r}
+# needed to run fromJSON(), 
+library('jsonlite')
+# needed to run rbind.fill()
+library('plyr')
+# needed to run the progress_bar
+library('progress')
+# needed to run flatten()
+library('purrr')
+# needed to run RCurl()
+library('RCurl')
+# needed to run str_replace_all()
+library('stringr')
+# needed to run write_tsv()
+library('readr')
+```
+
+#
+
+* Read in the Gustav Paulay edit of Kozloff's List of Marine Inverts in Puget Sound and remove the headers from the resulting data frame.
+```{r}
+# Load in the data containing the taxonomy to query
+data <- read.csv('GP_kozloff_edits.csv', header = TRUE, sep = ",")
+# Remove the header from "data"
+names(data) <- NULL
+```
+
+
+## Preparing the Input
+
+* Store the base URL used to query the API
+```{r}
+base <- "http://data.ggbn.org/ggbn_portal/api/search?getSampletype&name="
+```
+
+* Extract column containing taxonomic names from `data` and store it as `taxa`
+```{r}
+## Note the double brackets "[[]]" in "data[[2]]" as it extracts the column 
+## from the data frame and returns it as a vector. You could also write it as 
+## "data[,2]" and get the same result. Simply writing "data[2]" returns a 
+## a sublist of the "data" with the class data.frame.
+taxa <- data[[2]]
+
+# trims off leading and trailing whitespace
+taxa <- trimws(taxa)
+```
+
+* Create an empty data frame to add the query output to
+```{r}
+result <- data.frame()
+```
+
+* Create new instance of `progress_bar` with ETA
+```{r}
+pb <- progress_bar$new(
+  format = "  downloading [:bar] :percent eta: :eta",
+  total = length(taxa), clear = FALSE, width= 60)
+```
+
+## Running the Loop
+
+* This builds the URL, makes GET request, and uses `rbind.fill()` to append the `request` variable to the `result` data frame and fill in null values with NA
+  * the `purrr::flatten()` function allows null results to be coerced into data frames
+
+```{r}
+for (i in 1:length(taxa)) {
+  # Initiate progress bar with ETA
+    pb$tick(0)
+    pb$tick()
+
+    request <- flatten(fromJSON(getURL(URLencode(paste0(base,taxa[i])))))
+    result <- rbind.fill(result, as.data.frame(request))
+}
+```
+
+
+## Cleaning up the Result
+
+* Remove "fullScientificName_nc=" which is appended to each species value as an artifact of the query
+```{r}
+result$filters <- str_replace_all(result$filters, "^.*=", "")
+```
+
+## Saving the Result
+
+* Write `result` to TSV
+```{r}
+write_tsv(result, 'GGBN_Query_results.tsv', na = "NA")
+```
