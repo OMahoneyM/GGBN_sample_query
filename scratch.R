@@ -27,7 +27,7 @@ names(data) <- NULL
 ## from the data frame and returns it as a vector. You could also write it as 
 ## "data[,2]" and get the same result. Simply writing "data[2]" returns a 
 ## a sublist of the "data" with the class data.frame.
-taxa <- c("Hermissenda crassicornis", "Arthropoda", "Polychaeta","Cnidaria", "Annelida", "Echinodermata","Nudibranchia", "Asteroidea", "Nemertea","Nematoda", "Mollusca", "Copepoda")
+test <- c("Hermissenda crassicornis", "Arthropoda", "Polychaeta","Cnidaria", "Annelida", "Echinodermata","Nudibranchia", "Asteroidea", "Nemertea","Nematoda", "Mollusca", "Copepoda")
 
 taxa <- data[[2]]
 
@@ -49,8 +49,11 @@ for (i in 1:length(taxa)) {
   # Initiate progress bar with ETA
   pb$tick(0)
   pb$tick()
-  # Start and if/else statement to sleep every 25 queries
+  # Query GGBN API and store flattened JSON response in request
   request <- flatten(fromJSON(getURL(URLencode(paste(base,taxa[i], sep = "")))))
+  
+  # use rbind.fill to append each request to the result dataframe and 
+  # autopopulate the null values with NA
   result <- rbind.fill(result, as.data.frame(request))
 }
 
@@ -63,3 +66,49 @@ write_tsv(result, 'GGBN_Query_results_Complete.tsv', na = "NA")
 
 # Done
 #-------------------------------------------------------------------------------
+
+# turn above into two functions. one function for the loop 
+# and the second function for the data cleanup
+
+GGBN_query <- function(taxa) {
+  
+  # The base URL used to query the API
+  base <- "http://data.ggbn.org/ggbn_portal/api/search?getSampletype&name="
+  
+  # Create an empty data frame to add the query output to
+  result <- data.frame()
+  
+  # Create new instance of the progress bar with ETA
+  pb <- progress_bar$new(
+    format = "  downloading [:bar] :percent eta: :eta",
+    total = length(taxa), clear = FALSE, width= 60)
+  
+  # For loop that builds URL, makes GET request, and uses rbind.fill
+  # to append "request" variable to the data frame "result"
+  # the flatten() function allows null results to be coerced into dataframes
+  for (i in 1:length(taxa)) {
+    
+    # Initiate progress bar with ETA
+    pb$tick(0)
+    pb$tick()
+    
+    # Query GGBN API and store flattened JSON response in request
+    request <- 
+      base %>%
+      paste0(taxa[i]) %>%
+      URLencode() %>%
+      getURL() %>%
+      fromJSON() %>%
+      flatten()
+    
+    # use rbind.fill to append each request to the result dataframe and 
+    # autopopulate the null values with NA
+    result <- 
+      request %>%
+      as.data.frame() %>%
+      rbind.fill(result)
+  }
+  return(result)
+}
+
+df <- GGBN_query(test)
