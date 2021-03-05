@@ -122,8 +122,6 @@ data <- read.csv('GP_kozloff_edits.csv', header = FALSE, sep = ",", skip = 1)
 # The base URL used to query the API
 base <- "http://data.ggbn.org/ggbn_portal/api/search?getSampletype&name="
 
-# Remove the header from "data"
-names(data) <- NULL
 
 # Extract species from "data" and store it as a vector "taxa"
 ## Note the double brackets "[[]]" in "data[[2]]" as it extracts the column 
@@ -132,8 +130,6 @@ names(data) <- NULL
 ## a sublist of the "data" with the class data.frame.
 
 # trims off leading and trailing whitespace with trimws()
-test <- c("Hermissenda crassicornis", "Arthropoda", "Polychaeta","Cnidaria", "Annelida", "Echinodermata","Nudibranchia", "Asteroidea", "Nemertea","Nematoda", "Mollusca", "Copepoda")
-
 taxa_list <- 
   data[[2]] %>%
   trimws()
@@ -142,15 +138,6 @@ taxa_list <-
 pb <- progress_bar$new(
   format = "  downloading [:bar] :percent eta: :eta",
   total = length(taxa_list), clear = FALSE, width= 60)
-
-# Run sapply() to query each species in the taxa list using GGBN_query()
-df <- 
-  taxa_list %>%
-  sapply(FUN = GGBN_query)
-
-# Convert df from a list of lists to a data.frame
-df <- do.call(rbind.fill, df)
-
 
 # function that queries GGBN for available sample type data
 GGBN_query <- function(taxa) {
@@ -171,10 +158,49 @@ GGBN_query <- function(taxa) {
       as.data.frame()
 }
 
+# Run sapply() to query each species in the taxa list using GGBN_query()
+df <- 
+  taxa_list %>%
+  sapply(FUN = GGBN_query)
+
+# Convert df from a list of lists to a data.frame
+df <- do.call(rbind.fill, df)
+
 # Remove "fullScientificName_nc=" from the species query
 df$filters <- str_replace_all(df$filters, "^.*=", "")
 
 # write "result" to TSV
 write_tsv(df, 'GGBN_Query_results_Complete.tsv', na = "NA")
 
+# DONE
+################################################################################
+# -----------------If/else check on doc type and header -----------------------#
+################################################################################
+# writing function to check if data inputed was csv, tsv/txt
+# also check is data has a header or not
 
+# function(data, header, column) {
+# }
+
+# Load in the data containing the taxonomy to query
+data <- read.csv('GP_kozloff_edits_test.csv', header = FALSE, sep = ",", skip = 1)
+
+read.table(file = paste0("file.", format), header = header, sep = ",")
+
+read.table(file = paste0("file.", format), header = header, sep = "\t")
+
+test <- "test.csv"
+
+if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
+  print("success")
+} else {
+    print("Hello. We have been trying to reach you about your car's extended warranty")
+}
+
+if (grepl("^.*\\.csv", test) == TRUE) {
+  data <- read.table(file = data, header = header, sep = ",")
+} else if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
+  data <- read.table(file = data, header = header, sep = "\t")
+} else {
+  print("Incorrect data format Please load .csv, .tsv, or .txt file")
+}
