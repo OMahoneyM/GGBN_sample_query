@@ -64,8 +64,10 @@ result$filters <- str_replace_all(result$filters, "^.*=", "")
 write_tsv(result, 'GGBN_Query_results_Complete.tsv', na = "NA")
 
 
-# Done
-#-------------------------------------------------------------------------------
+# DONE
+################################################################################
+# --------------------- FUNCTIONIZE THE SCRIPT ABOVE --------------------------#
+################################################################################
 
 # turn above into two functions. one function for the loop 
 # and the second function for the data cleanup
@@ -113,11 +115,14 @@ GGBN_query <- function(taxa) {
 
 df <- GGBN_query(test)
 
-# ------------------------------------------------------------------------
+# DONE
+################################################################################
+# --------------------------- USING SAPPLY ------------------------------------#
+################################################################################
 # Turning the above code into a function that uses lapply instead of a for loop
 
 # Load in the data containing the taxonomy to query
-data <- read.csv('GP_kozloff_edits.csv', header = FALSE, sep = ",", skip = 1)
+data <- read.csv('GP_kozloff_edits.csv', header = TRUE, sep = ",")
 
 # The base URL used to query the API
 base <- "http://data.ggbn.org/ggbn_portal/api/search?getSampletype&name="
@@ -179,17 +184,23 @@ write_tsv(df, 'GGBN_Query_results_Complete.tsv', na = "NA")
 # writing function to check if data inputed was csv, tsv/txt
 # also check is data has a header or not
 
-# function(data, header, column) {
+# function(data_file, header, column) {
 # }
 
 # Load in the data containing the taxonomy to query
-data <- read.csv('GP_kozloff_edits_test.csv', header = FALSE, sep = ",", skip = 1)
+data <- read.csv('GP_kozloff_edits_test.csv', header = TRUE, sep = ",")
+
+column <- "scientificname_verbatim"
+
+data4 <- data[[2]]
+
 
 read.table(file = paste0("file.", format), header = header, sep = ",")
 
 read.table(file = paste0("file.", format), header = header, sep = "\t")
 
 test <- "test.csv"
+test2 <- 4
 
 if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
   print("success")
@@ -197,10 +208,28 @@ if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
     print("Hello. We have been trying to reach you about your car's extended warranty")
 }
 
-if (grepl("^.*\\.csv", test) == TRUE) {
-  data <- read.table(file = data, header = header, sep = ",")
-} else if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
-  data <- read.table(file = data, header = header, sep = "\t")
+if (grepl("^.*\\.csv", data_file) == TRUE) {
+  data <- read.table(file = data_file, header = head, sep = ",")
+} else if (grepl("^.*\\.tsv|^.*\\.txt", data_file) == TRUE) {
+  data <- read.table(file = data_file, header = head, sep = "\t")
 } else {
   print("Incorrect data format Please load .csv, .tsv, or .txt file")
+}
+
+is.character(test2)
+is.integer(test2)
+test2 %% 1 == 0
+
+# if column string is found in data_file names | column is int
+grepl(column, colnames(data_file)) == TRUE | is.integer(column) == TRUE
+# else if head == FALSE and column is string
+
+if (grepl(column, colnames(data_file)) == TRUE | column %% 1 == 0) {
+  taxa_list <- 
+    data[[column]] %>%
+    trimws()
+} else if (head == FALSE & is.character(column) == TRUE) {
+  print("You entered FALSE for the header argument and a string for the column argument. Please check your file again and re-enter a vaild combination")
+} else {
+  print("Please enter TRUE or FALSE for the header argument and check the spelling of the column argument")
 }
