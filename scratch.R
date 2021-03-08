@@ -184,7 +184,7 @@ write_tsv(df, 'GGBN_Query_results_Complete.tsv', na = "NA")
 # writing function to check if data inputed was csv, tsv/txt
 # also check is data has a header or not
 
-# function(data_file, header, column) {
+# function(data_file, head, column) {
 # }
 
 # Load in the data containing the taxonomy to query
@@ -199,8 +199,16 @@ read.table(file = paste0("file.", format), header = header, sep = ",")
 
 read.table(file = paste0("file.", format), header = header, sep = "\t")
 
-test <- "test.csv"
-test2 <- 4
+test_df <- data.frame(uno = 1:4,
+                        test_header = 5:8)
+
+test <- "test_header"
+test2 <- 2
+head <- TRUE
+
+
+
+class(head)
 
 if (grepl("^.*\\.tsv|^.*\\.txt", test) == TRUE) {
   print("success")
@@ -213,23 +221,51 @@ if (grepl("^.*\\.csv", data_file) == TRUE) {
 } else if (grepl("^.*\\.tsv|^.*\\.txt", data_file) == TRUE) {
   data <- read.table(file = data_file, header = head, sep = "\t")
 } else {
-  print("Incorrect data format Please load .csv, .tsv, or .txt file")
+  print("Incorrect data format. Please load .csv, .tsv, or .txt file")
 }
 
 is.character(test2)
 is.integer(test2)
 test2 %% 1 == 0
 
-# if column string is found in data_file names | column is int
+is.numeric()
+
+if (head %in% names(test_df) | is.numeric(head)) {
+  print("Success")
+} else {
+  print("Please enter TRUE or FALSE for the header argument and check the spelling of the column argument")
+}
+
+
+if (head == FALSE & is.character(test) == TRUE) {
+  print("You entered FALSE for the header argument and a string for the column argument. Please check your file again and re-enter a vaild combination")
+} else {
+  print("Please enter TRUE or FALSE for the header argument and check the spelling of your column argument")
+}
+# if column string is found in data_file colnames | column is int
 grepl(column, colnames(data_file)) == TRUE | is.integer(column) == TRUE
 # else if head == FALSE and column is string
 
-if (grepl(column, colnames(data_file)) == TRUE | column %% 1 == 0) {
+# ---------------------------------------------------------------------------
+# QC'd if statements to check if entered arguments are valid
+# ---------------------------------------------------------------------------
+
+if (grepl("^.*\\.csv", data_file) == TRUE) {
+  data <- read.table(file = data_file, header = head, sep = ",")
+} else if (grepl("^.*\\.tsv|^.*\\.txt", data_file) == TRUE) {
+  data <- read.table(file = data_file, header = head, sep = "\t")
+} else {
+  print("Incorrect data format. Please load .csv, .tsv, or .txt file")
+}
+
+if (column %in% names(data_file) | is.numeric(column)) {
   taxa_list <- 
     data[[column]] %>%
     trimws()
 } else if (head == FALSE & is.character(column) == TRUE) {
-  print("You entered FALSE for the header argument and a string for the column argument. Please check your file again and re-enter a vaild combination")
+  print("You entered FALSE for the header argument and a string for the column 
+        argument. Please check your file again and re-enter a vaild combination")
 } else {
-  print("Please enter TRUE or FALSE for the header argument and check the spelling of the column argument")
+  print("Please enter TRUE or FALSE for the header argument and check the 
+        spelling of the column argument")
 }
