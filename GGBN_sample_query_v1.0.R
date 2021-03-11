@@ -49,7 +49,7 @@ GGBN_sample_query <- function(data_file = NULL, head = NULL, column = NULL) {
     # Validation check that column value can be found in header values if it is
     # a string or if it is a numeric value instead. If pass the taxa column is 
     # extracted, white space is trimmed, and stored as taxa_list vector
-    if (column %in% names(data_file) || is.numeric(column)) {
+    if (column %in% names(data) || is.numeric(column)) {
       taxa_list <- 
         data[[column]] %>%
         trimws()
@@ -76,7 +76,7 @@ GGBN_sample_query <- function(data_file = NULL, head = NULL, column = NULL) {
           URLencode() %>%
           getURL() %>%
           fromJSON() %>%
-          flatten() %>%
+          purrr::flatten() %>%
           as.data.frame()
       }
       
@@ -104,7 +104,7 @@ GGBN_sample_query <- function(data_file = NULL, head = NULL, column = NULL) {
 
 # Run the above function and store results
 df <- GGBN_sample_query(data_file = 'GP_kozloff_edits_test.csv', 
-                        head = TRUE, column = 2)
+                        head = TRUE, column = "scientificname_verbatim")
 
 # write "result" to TSV
 write_tsv(df, 'GGBN_Query_results_Complete.tsv', na = "NA")

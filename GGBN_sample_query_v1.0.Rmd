@@ -58,7 +58,7 @@ GGBN_sample_query <- function(data_file = NULL, head = NULL, column = NULL) {
     # Validation check that column value can be found in header values if it is
     # a string or if it is a numeric value instead. If pass the taxa column is 
     # extracted, white space is trimmed, and stored as taxa_list vector
-    if (column %in% names(data_file) || is.numeric(column)) {
+    if (column %in% names(data) || is.numeric(column)) {
       taxa_list <- 
         data[[column]] %>%
         trimws()
@@ -116,7 +116,7 @@ GGBN_sample_query <- function(data_file = NULL, head = NULL, column = NULL) {
 ## Execute the Function
 * `data_file`: Enter the file containg the taxonomy
 * `head`: Indicate weather the `data_file` has a header using `TRUE` or `FALSE`
-* `column`: Enter the numeric column position of the taxa you want to query
+* `column`: Enter either the header string or the numeric value of the column you want to query
 ```{r}
 df <- GGBN_sample_query(data_file = '', 
                         head = , column = )
